@@ -14,40 +14,34 @@
 
 package org.compiere.pos;
 
-import java.awt.CardLayout;
+
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
 
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JScrollBar;
-import javax.swing.SwingConstants;
-
-import net.miginfocom.swing.MigLayout;
 
 import org.adempiere.plaf.AdempierePLAF;
+import org.adempiere.webui.component.Label;
+import org.adempiere.webui.component.Panel;
 import org.compiere.model.MImage;
 import org.compiere.model.MPOSKey;
 import org.compiere.model.MPOSKeyLayout;
 import org.compiere.print.MPrintColor;
 import org.compiere.print.MPrintFont;
-import org.compiere.swing.CButton;
-import org.compiere.swing.CPanel;
-import org.compiere.swing.CScrollPane;
 import org.compiere.util.CLogger;
 import org.compiere.util.Env;
-
+import org.zkoss.zk.ui.event.Event;
+import org.zkoss.zk.ui.event.EventListener;
 /**
  * Button panel supporting multiple linked layouts
  * @author Paul Bowden
  * Adaxa Pty Ltd
  *
  */
-public class PosKeyPanel extends CPanel implements ActionListener {
+public class WPosKeyPanel extends Panel implements ActionListener, EventListener {
 	/**
 	 * 
 	 */
@@ -57,35 +51,71 @@ public class PosKeyPanel extends CPanel implements ActionListener {
 	/**
 	 * 	Constructor
 	 */
-	public PosKeyPanel (int C_POSKeyLayout_ID, PosKeyListener caller)
+	public WPosKeyPanel (int C_POSKeyLayout_ID, PosKeyListener caller)
 	{
 		if (C_POSKeyLayout_ID == 0)
 			return;
-		
-		setLayout(cardLayout);
-		add(createCard(C_POSKeyLayout_ID), Integer.toString(C_POSKeyLayout_ID));
+		setHeight("100%");
+		setWidth("100%");
+		status = false;
+		appendChild(createPanel(C_POSKeyLayout_ID));
 		currentLayout = C_POSKeyLayout_ID;
-		System.out.println(currentLayout+"key");
-		cardLayout.show(this, Integer.toString(C_POSKeyLayout_ID));
+//		cardLayout.show(this, Integer.toString(C_POSKeyLayout_ID));
 		this.caller = caller;
 	}	//	PosSubFunctionKeys
 	
-	/** layout			*/
-	private CardLayout cardLayout = new CardLayout();
 	/** Map of map of keys */
 	private HashMap<Integer, HashMap<Integer, MPOSKey>> keymap = new HashMap<Integer, HashMap<Integer,MPOSKey>>();
 	/** Currently displayed layout	*/
 	int currentLayout;
 	/**	Logger			*/
-	private static CLogger log = CLogger.getCLogger(PosKeyPanel.class);
+	private static CLogger log = CLogger.getCLogger(WPosKeyPanel.class);
 	/** Caller			*/
 	private PosKeyListener caller;
-
-
+	/** Status Panel */
+	private boolean status;
+	private Panel ABC_SubCard;
+	private Panel abc_SubCard;
+	
+	public Panel createPanel(int C_POSKeyLayout_ID){
+		Panel card = new Panel();
+		card.setWidth("100%");
+		MPOSKeyLayout keyLayout = MPOSKeyLayout.get(Env.getCtx(), C_POSKeyLayout_ID);
+		
+		if(abc_SubCard==null) {
+			abc_SubCard = createButton(C_POSKeyLayout_ID);
+			card.appendChild(abc_SubCard);
+		}
+		if (keyLayout.get_ID() == 0)
+			return null;
+		MPOSKey[] keys = keyLayout.getKeys(false);
+		
+		//	Content
+		for (MPOSKey key :  keys)
+		{
+			if ( key.getSubKeyLayout_ID() > 0 )
+			{
+				if(ABC_SubCard == null){
+					ABC_SubCard = createButton(key.getSubKeyLayout_ID());
+				}
+				if ( ABC_SubCard != null  ){
+					if(status==false) {
+						card.appendChild(ABC_SubCard);
+						ABC_SubCard.setVisible(status);
+						ABC_SubCard.setContext(""+key.getC_POSKey_ID());
+						status=true;
+					}
+				}
+					card.appendChild(ABC_SubCard);
+			}
+		}
+		return card;
+	}
+	
 	/**
 	 * @return
 	 */
-	private CPanel createCard(int C_POSKeyLayout_ID) {
+	private Panel createButton(int C_POSKeyLayout_ID) {
 		
 		// already added
 		if ( keymap.containsKey(C_POSKeyLayout_ID) )
@@ -93,8 +123,7 @@ public class PosKeyPanel extends CPanel implements ActionListener {
 			return null;
 		}
 		
-		CPanel card = new CPanel();
-		card.setLayout(new MigLayout("fill, ins 0"));
+		Panel card = new Panel();
 		MPOSKeyLayout keyLayout = MPOSKeyLayout.get(Env.getCtx(), C_POSKeyLayout_ID);
 
 		Color stdColor = Color.lightGray;
@@ -130,22 +159,14 @@ public class PosKeyPanel extends CPanel implements ActionListener {
 		log.fine( "PosSubFunctionKeys.init - NoKeys=" + noKeys 
 			+ ", Cols=" + cols);
 		//	Content
-		CPanel content = new CPanel (new MigLayout("fill, wrap " + Math.max(cols, 3)));
+		Panel content = new Panel ();
 		String buttonSize = "h 50, w 50, growx, growy, sg button,";
 		for (MPOSKey key :  keys)
 		{
-			
-			if ( key.getSubKeyLayout_ID() > 0 )
-			{
-				CPanel subCard = createCard(key.getSubKeyLayout_ID());
-				if ( subCard != null )
-					add(subCard, Integer.toString(key.getSubKeyLayout_ID()));
-			}
-			
+					
 			map.put(key.getC_POSKey_ID(), key);
 			Color keyColor = stdColor;
 			Font keyFont = stdFont;
-			StringBuffer buttonHTML = new StringBuffer("<html><p>");
 			if (key.getAD_PrintColor_ID() != 0)
 			{
 				MPrintColor color = MPrintColor.get(Env.getCtx(), key.getAD_PrintColor_ID());
@@ -158,26 +179,32 @@ public class PosKeyPanel extends CPanel implements ActionListener {
 				keyFont = font.getFont();
 			}
 			
-			buttonHTML.append(key.getName());
-			buttonHTML.append("</p></html>");
 			log.fine( "#" + map.size() + " - " + keyColor); 
-			CButton button = new CButton(buttonHTML.toString());
-			button.setBackground(keyColor);
-			button.setFont(keyFont);
-
+			Panel button = new Panel();
+			Label label = new Label(key.getName());
+			label.setStyle("margin: 25px 0px 00px 0px; top:20px; font-size:medium; font-weight: bold;");
+			label.setHeight("100%");
+			button.appendChild(label);
+			button.setStyle("float:left; text-align:center; margin:1% 1%; Background-color:rgb("+keyColor.getRed()+","+keyColor.getGreen()+","+keyColor.getBlue()+"); border: 2px outset #CCC;");
+			button.setHeight("55px");
+			button.setWidth("55px");
+//			button.setBackground(keyColor);
+//			button.setFont(keyFont);
+			button.setId(""+key.getC_POSKey_ID());
+			button.addEventListener("onClick", this);
 			if ( key.getAD_Image_ID() != 0 )
 			{
 				MImage image = MImage.get(Env.getCtx(), key.getAD_Image_ID());
 				Icon icon = image.getIcon();
-				button.setIcon(icon);
-				button.setVerticalTextPosition(SwingConstants.BOTTOM);
-				button.setHorizontalTextPosition(SwingConstants.CENTER);
+//				button.setIcon(icon);
+//				button.setVerticalTextPosition(SwingConstants.BOTTOM);
+//				button.setHorizontalTextPosition(SwingConstants.CENTER);
 			}
-			button.setFocusable(false);
-			if ( !key.isActive() )
-				button.setEnabled(false);
-			button.setActionCommand(String.valueOf(key.getC_POSKey_ID()));
-			button.addActionListener(this);
+//			button.setFocusable(false);
+//			if ( !key.isActive() )
+//				button.setEnabled(false);
+//			button.setActionCommand(String.valueOf(key.getC_POSKey_ID()));
+//			button.addActionListener(this);
 			String constraints = buttonSize;
 			int size = 1;
 			if ( key.getSpanX() > 1 )
@@ -191,7 +218,7 @@ public class PosKeyPanel extends CPanel implements ActionListener {
 				size = size*key.getSpanY();
 			}
 			buttons = buttons + size;
-			content.add (button, constraints);
+			content.appendChild(button);
 		}
 		
 		int rows = Math.max ((buttons / cols), ROWS);
@@ -200,18 +227,21 @@ public class PosKeyPanel extends CPanel implements ActionListener {
 		
 		for (int i = buttons; i < rows*cols; i++)
 		{
-			CButton button = new CButton("");
-			button.setFocusable(false);
-			button.setReadWrite(false);
-			content.add (button, buttonSize);
+			Panel button = new Panel();
+			button.setStyle("float:left; text-align:center; margin:1% 1%;  border: 2px outset #CCC;");
+			button.setHeight("55px");
+			button.setWidth("55px");
+//			button.setFocusable(false);
+//			button.setReadWrite(false);
+			content.appendChild(button);
 		}
-		
-		CScrollPane scroll = new CScrollPane(content);
+		card.appendChild(content);
+//		CScrollPane scroll = new CScrollPane(content);
 		// scroll.setPreferredSize(new Dimension( 600 - 20, 400-20));
-		card.add (scroll, "growx, growy");
+//		card.add (scroll, "growx, growy");
 		// increase scrollbar width for touchscreen
-		scroll.getVerticalScrollBar().setPreferredSize(new Dimension(30, 0));
-		scroll.getHorizontalScrollBar().setPreferredSize(new Dimension(0,30));
+//		scroll.getVerticalScrollBar().setPreferredSize(new Dimension(30, 0));
+//		scroll.getHorizontalScrollBar().setPreferredSize(new Dimension(0,30));
 		return card;
 	}
 
@@ -226,23 +256,19 @@ public class PosKeyPanel extends CPanel implements ActionListener {
 			return;
 		log.info( "PosSubFunctionKeys - actionPerformed: " + action);
 		HashMap<Integer, MPOSKey> currentKeymap = keymap.get(currentLayout);
-
-		System.out.println(currentLayout+"Cukey");
+		
 		try
 		{
 			int C_POSKey_ID = Integer.parseInt(action);
 			MPOSKey key = currentKeymap.get(C_POSKey_ID);
-
-			System.out.println(C_POSKey_ID+"Ckey");
 			// switch layout
-
 			if ( key.getSubKeyLayout_ID() > 0 )
 			{
 				currentLayout = key.getSubKeyLayout_ID();
-				cardLayout.show(this, Integer.toString(key.getSubKeyLayout_ID()));
+//				cardLayout.show(this, Integer.toString(key.getSubKeyLayout_ID()));
 			}
 			else
-			{	
+			{
 				caller.keyReturned(key);
 			}
 		}
@@ -251,5 +277,40 @@ public class PosKeyPanel extends CPanel implements ActionListener {
 		}
 		
 	}	//	actionPerformed
+
+	@Override
+	public void onEvent(Event event) throws Exception {
+		// TODO Auto-generated method stub
+		String action = event.getTarget().getId();
+
+		HashMap<Integer, MPOSKey> currentKeymap = keymap.get(currentLayout);
+
+		try
+		{
+			int C_POSKey_ID = Integer.parseInt(action);
+			MPOSKey key = currentKeymap.get(C_POSKey_ID);
+			if ( key.getSubKeyLayout_ID() > 0 )
+			{
+
+				currentLayout = key.getSubKeyLayout_ID();
+				currentLayout = key.getSubKeyLayout_ID();
+				if(ABC_SubCard.getContext().equals(event.getTarget().getId())){
+					ABC_SubCard.setVisible(true);
+					abc_SubCard.setVisible(false);
+				}
+				else {
+					ABC_SubCard.setVisible(false);
+					abc_SubCard.setVisible(true);
+				}
+			}
+			else
+			{
+				caller.keyReturned(key);
+			}
+		}
+		catch (Exception ex)
+		{
+		}
+	}
 
 }
