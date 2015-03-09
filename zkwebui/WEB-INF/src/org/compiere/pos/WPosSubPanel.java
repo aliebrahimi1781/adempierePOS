@@ -14,25 +14,16 @@
 
 package org.compiere.pos;
 
-import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Properties;
 
 import javax.swing.KeyStroke;
 
 import org.adempiere.webui.component.Borderlayout;
 import org.adempiere.webui.component.Button;
-import org.adempiere.webui.component.Panel;
 import org.compiere.apps.AppsAction;
 import org.compiere.model.MPOS;
-import org.compiere.swing.CButton;
-import org.compiere.swing.CPanel;
 import org.compiere.util.Env;
 import org.zkoss.zk.ui.event.EventListener;
-import org.zkoss.zkex.zul.North;
 
 /**
  *	POS Sub Panel Base Class.
@@ -42,7 +33,7 @@ import org.zkoss.zkex.zul.North;
  *  
  */
 public abstract class WPosSubPanel extends Borderlayout 
-	implements ActionListener, EventListener
+	implements EventListener
 {
 	/**
 	 * 
@@ -96,7 +87,6 @@ public abstract class WPosSubPanel extends Borderlayout
 	protected Button createButtonAction (String action, KeyStroke accelerator)
 	{
 		AppsAction act = new AppsAction(action, accelerator, false);
-		act.setDelegate(this);
 		Button button = new Button();
 		button.setImage("images/"+action+"24.png");
 		button.setWidth(WIDTH+"px");
@@ -135,14 +125,5 @@ public abstract class WPosSubPanel extends Borderlayout
 //		button.setFocusable(false);
 		return button;
 	}	//	getButton
-
-	/**
-	 * 	Action Listener
-	 *	@param e event
-	 */
-	public void actionPerformed (ActionEvent e)
-	{
-		
-	}	//	actionPerformed
 
 }	//	PosSubPanel

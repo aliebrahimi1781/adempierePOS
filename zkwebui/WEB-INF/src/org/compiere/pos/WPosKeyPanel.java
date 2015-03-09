@@ -26,6 +26,7 @@ import javax.swing.Icon;
 import org.adempiere.plaf.AdempierePLAF;
 import org.adempiere.webui.component.Label;
 import org.adempiere.webui.component.Panel;
+import org.adempiere.webui.component.Textbox;
 import org.compiere.model.MImage;
 import org.compiere.model.MPOSKey;
 import org.compiere.model.MPOSKeyLayout;
@@ -51,16 +52,15 @@ public class WPosKeyPanel extends Panel implements ActionListener, EventListener
 	/**
 	 * 	Constructor
 	 */
-	public WPosKeyPanel (int C_POSKeyLayout_ID, PosKeyListener caller)
+	public WPosKeyPanel (int C_POSKeyLayout_ID, PosKeyListener caller, String m_txtCalc)
 	{
 		if (C_POSKeyLayout_ID == 0)
 			return;
 		setHeight("100%");
 		setWidth("100%");
 		status = false;
-		appendChild(createPanel(C_POSKeyLayout_ID));
+		appendChild(createPanel(C_POSKeyLayout_ID, m_txtCalc));
 		currentLayout = C_POSKeyLayout_ID;
-//		cardLayout.show(this, Integer.toString(C_POSKeyLayout_ID));
 		this.caller = caller;
 	}	//	PosSubFunctionKeys
 	
@@ -76,14 +76,13 @@ public class WPosKeyPanel extends Panel implements ActionListener, EventListener
 	private boolean status;
 	private Panel ABC_SubCard;
 	private Panel abc_SubCard;
-	
-	public Panel createPanel(int C_POSKeyLayout_ID){
+	public Panel createPanel(int C_POSKeyLayout_ID, String m_txtCalc){
 		Panel card = new Panel();
 		card.setWidth("100%");
 		MPOSKeyLayout keyLayout = MPOSKeyLayout.get(Env.getCtx(), C_POSKeyLayout_ID);
 		
 		if(abc_SubCard==null) {
-			abc_SubCard = createButton(C_POSKeyLayout_ID);
+			abc_SubCard = createButton(C_POSKeyLayout_ID, m_txtCalc);
 			card.appendChild(abc_SubCard);
 		}
 		if (keyLayout.get_ID() == 0)
@@ -96,7 +95,7 @@ public class WPosKeyPanel extends Panel implements ActionListener, EventListener
 			if ( key.getSubKeyLayout_ID() > 0 )
 			{
 				if(ABC_SubCard == null){
-					ABC_SubCard = createButton(key.getSubKeyLayout_ID());
+					ABC_SubCard = createButton(key.getSubKeyLayout_ID(), m_txtCalc);
 				}
 				if ( ABC_SubCard != null  ){
 					if(status==false) {
@@ -115,7 +114,7 @@ public class WPosKeyPanel extends Panel implements ActionListener, EventListener
 	/**
 	 * @return
 	 */
-	private Panel createButton(int C_POSKeyLayout_ID) {
+	private Panel createButton(int C_POSKeyLayout_ID, String m_txtCalc) {
 		
 		// already added
 		if ( keymap.containsKey(C_POSKeyLayout_ID) )
@@ -188,6 +187,8 @@ public class WPosKeyPanel extends Panel implements ActionListener, EventListener
 			button.setStyle("float:left; text-align:center; margin:1% 1%; Background-color:rgb("+keyColor.getRed()+","+keyColor.getGreen()+","+keyColor.getBlue()+"); border: 2px outset #CCC;");
 			button.setHeight("55px");
 			button.setWidth("55px");
+
+			button.setAction("onClick : text_action.clearAlll('" +  m_txtCalc + "', '" + key.getName() + "')");
 //			button.setBackground(keyColor);
 //			button.setFont(keyFont);
 			button.setId(""+key.getC_POSKey_ID());

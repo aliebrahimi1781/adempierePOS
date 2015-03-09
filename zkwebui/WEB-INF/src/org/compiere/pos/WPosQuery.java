@@ -65,9 +65,6 @@ public abstract class WPosQuery extends Window implements MouseListener, ListSel
 
 	public abstract void actionPerformed(ActionEvent e);
 
-	public void dispose() {
-		dispose(false);
-	}
 
 	protected abstract void init();
 	protected abstract void enableButtons();
@@ -83,7 +80,6 @@ public abstract class WPosQuery extends Window implements MouseListener, ListSel
 		p_ctx = p_pos.getCtx();
 		this.setAttribute("mode", "modal");
 		this.setBorder("normal");
-		this.setClosable(true);
 		this.setWidth("850px");
 		this.setHeight("500px");
 		this.setContentStyle("overflow: auto");
@@ -92,8 +88,6 @@ public abstract class WPosQuery extends Window implements MouseListener, ListSel
         this.setVisible(true);
         
 		init();
-//		pack();
-//		setLocationByPlatform(true);
 	}	//	PosQueryBPartner
 	
 	/**
@@ -110,30 +104,8 @@ public abstract class WPosQuery extends Window implements MouseListener, ListSel
 		}
 	}   //  mouseClicked
 	
-	public boolean isModal()
-    {
-    	return false;
-    }
 
-    /**
-     *  Dispose and save Selection
-     *  @param ok OK pressed
-     */
-    public void dispose(boolean ok)
-    {
-        log.config("OK=" + ok);
-//        m_ok = ok;
-
-        //  End Worker
-        if (isModal())
-        {
-//        	saveSelection();
-        }
-        if (Window.MODE_EMBEDDED.equals(getAttribute(Window.MODE_KEY)))
-        	SessionManager.getAppDesktop().closeActiveWindow();
-        else
-	        this.detach();
-    }   //  dispose
+    
     
 	public void mouseEntered (MouseEvent e) {}
 	public void mouseExited (MouseEvent e) {}

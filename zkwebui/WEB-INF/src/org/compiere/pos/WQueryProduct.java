@@ -41,6 +41,7 @@ import org.compiere.util.Env;
 import org.compiere.util.Msg;
 import org.python.antlr.PythonParser.classdef_return;
 import org.zkoss.zk.ui.event.Event;
+import org.zkoss.zk.ui.event.InputEvent;
 import org.zkoss.zkex.zul.Center;
 import org.zkoss.zkex.zul.East;
 import org.zkoss.zkex.zul.North;
@@ -117,7 +118,7 @@ public class WQueryProduct extends WPosQuery
 		Grid productLayout = GridFactory.newGridLayout();
 		this.setTitle("Query Title");
 		
-		cont=0;
+		cont=2;
 		appendChild(panel);
 		//	North
 		northPanel = new Panel();
@@ -180,7 +181,7 @@ public class WQueryProduct extends WPosQuery
 		
 		f_ok = createButtonAction("Ok", KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0));
 		panelbutton.appendChild(f_ok);
-		f_ok.focus();
+		f_ok.setFocus(true);
 		f_cancel = createButtonAction("Cancel", KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0));
 		panelbutton.appendChild(f_cancel);
 		row.appendChild(panelbutton);
@@ -201,6 +202,7 @@ public class WQueryProduct extends WPosQuery
 		m_table.loadTable(new PO[0]);
 		m_table.autoSize();
 	}	//	init
+
 	
 	/**
 	 * 	Set Query Data
@@ -330,12 +332,6 @@ public class WQueryProduct extends WPosQuery
 
 	@Override
 	public void reset() {
-//
-//		f_value.setText(null);
-//		f_name.setText(null);
-//		f_sku.setText(null);
-//		f_upc.setText(null);
-//		setResults(new MWarehousePrice[0]);
 	}
 
 	@Override
@@ -348,7 +344,7 @@ public class WQueryProduct extends WPosQuery
 			}
 		else if(event.getTarget().equals(f_value)){
 			cont++;
-			if(cont<2) {
+			if(cont < 2) {
 				WPOSKeyboard keyboard = p_posPanel.getKeyboard(f_value.getKeyLayoutId(), this, f_value); 
 				keyboard.setTitle(Msg.translate(Env.getCtx(), "M_Product_ID"));
 				keyboard.setVisible(true);
@@ -357,8 +353,7 @@ public class WQueryProduct extends WPosQuery
 					setResults(MWarehousePrice.find (p_ctx,
 						m_M_PriceList_Version_ID, m_M_Warehouse_ID,
 						f_value.getText(), f_name.getText(), f_upc.getText(), f_sku.getText(), null));
-
-					f_refresh.setFocus(true);
+						f_refresh.setFocus(true);
 				}
 			}
 			else {
@@ -383,6 +378,9 @@ public class WQueryProduct extends WPosQuery
 		}
 		enableButtons();
 		if(event.getTarget().equals(f_ok)){
+			close();
+		}
+		if(event.getTarget().equals(f_cancel)){
 			close();
 		}
 	}
