@@ -15,12 +15,8 @@
 package org.compiere.pos;
 
 import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.Dimension;
 import java.awt.Event;
 import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.FileOutputStream;
@@ -29,19 +25,10 @@ import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.HashMap;
-import java.util.Vector;
 import java.util.logging.Level;
-import java.lang.Object;
 
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.Icon;
-import javax.swing.JFormattedTextField;
-import javax.swing.JTextField;
 import javax.swing.KeyStroke;
-import javax.swing.SwingConstants;
-import javax.swing.border.TitledBorder;
-
-import net.miginfocom.swing.MigLayout;
 
 import org.adempiere.plaf.AdempierePLAF;
 import org.adempiere.webui.apps.AEnv;
@@ -59,14 +46,9 @@ import org.adempiere.webui.component.WListbox;
 import org.adempiere.webui.event.WTableModelEvent;
 import org.adempiere.webui.event.WTableModelListener;
 import org.adempiere.webui.window.FDialog;
-import org.apache.ecs.xhtml.form;
-import org.compiere.apps.ADialog;
-import org.compiere.grid.ed.VNumber;
 import org.compiere.minigrid.ColumnInfo;
 import org.compiere.minigrid.IDColumn;
 import org.compiere.model.MBPartner;
-import org.compiere.model.MBPartnerInfo;
-import org.compiere.model.MBPartnerLocation;
 import org.compiere.model.MCurrency;
 import org.compiere.model.MImage;
 import org.compiere.model.MOrder;
@@ -76,21 +58,15 @@ import org.compiere.model.MPOSKeyLayout;
 import org.compiere.model.MPriceList;
 import org.compiere.model.MPriceListVersion;
 import org.compiere.model.MProduct;
-import org.compiere.model.MUser;
 import org.compiere.model.MWarehousePrice;
 import org.compiere.model.PO;
 import org.compiere.print.MPrintColor;
 import org.compiere.print.MPrintFont;
-import org.compiere.print.ReportCtl;
-import org.compiere.print.ReportEngine;
-import org.compiere.process.DocAction;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
-import org.compiere.util.KeyNamePair;
 import org.compiere.util.Msg;
-import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zkex.zul.Center;
 import org.zkoss.zkex.zul.East;
@@ -127,9 +103,6 @@ public class WSubOrder extends WPosSubPanel
 	private Button 		f_history;
 	private	Textbox		f_name;
 	private Button 		f_bNew;
-//	private CButton 		f_bSearch;
-//	private CComboBox		f_location;
-//	private CComboBox		f_user;
 	private Button 		f_cashPayment;
 	private Button 		f_process;
 	private Button 		f_print;
@@ -142,15 +115,11 @@ public class WSubOrder extends WPosSubPanel
 	
 	/**	The Business Partner		*/
 	private MBPartner	m_bpartner;
-//	/**	Price List Version to use	*/
-//	private int			m_M_PriceList_Version_ID = 0;
 	private Textbox f_currency = new Textbox();
 	private Button f_bEdit;
 	private Button f_bSettings;
 	/**	Logger			*/
 	private static CLogger log = CLogger.getCLogger(SubOrder.class);
-	private Panel parameterPanel = new Panel();
-	private Grid parameterLayout = GridFactory.newGridLayout();
 	
 	
 	private Button f_up;
@@ -266,16 +235,6 @@ public class WSubOrder extends WPosSubPanel
 		
 		setStyle("border: none");
 		
-//		appendChild(parameterPanel);
-		
-		Font bigFont = AdempierePLAF.getFont_Field().deriveFont(16f);
-
-		
-		/*
-		//
-		f_user = new CComboBox();
-		add (f_user, "skip 1");
-		*/
 		
 		m_table = ListboxFactory.newDataTable();
 		m_sql = m_table.prepareTable(s_layout, s_sqlFrom, 
@@ -488,19 +447,13 @@ public class WSubOrder extends WPosSubPanel
 		Label productLabel = new Label(Msg.translate(Env.getCtx(), "M_Product_ID"));
 		row.appendChild(productLabel);
 		
-		f_name1 = new WPosTextField(Msg.translate(Env.getCtx(), "M_Product_ID"), p_posPanel, p_pos.getOSK_KeyLayout_ID());
+		f_name1 = new WPosTextField(p_posPanel, p_pos.getOSK_KeyLayout_ID());
 		
 		f_name1.setName("Name");
 		f_name1.setReadonly(true);
 		f_name1.addEventListener("onFocus", this);
-//		f_name1.addFocusListener(this);
-//		f_name.requestFocusInWindow();
 		
 		row.appendChild(f_name1);
-
-//		row.appendChild(m_table);
-		
-		
 		
 	}	//	init
 	
@@ -518,13 +471,6 @@ public class WSubOrder extends WPosSubPanel
 			MPrintColor color = MPrintColor.get(Env.getCtx(), keyLayout.getAD_PrintColor_ID());
 			stdColor = color.getColor();
 		}
-		Font stdFont = AdempierePLAF.getFont_Field();
-		if (keyLayout.getAD_PrintFont_ID() != 0)
-		{
-			MPrintFont font = MPrintFont.get(keyLayout.getAD_PrintFont_ID());
-			stdFont = font.getFont();
-		}
-		
 		if (keyLayout.get_ID() == 0)
 			return null;
 		MPOSKey[] keys = keyLayout.getKeys(false);
@@ -545,12 +491,10 @@ public class WSubOrder extends WPosSubPanel
 			+ ", Cols=" + cols);
 		//	Content
 		Panel content = new Panel ();
-		String buttonSize = "h 50, w 50, growx, growy, sg button,";
 		for (MPOSKey key :  keys)
 		{
 			map.put(key.getC_POSKey_ID(), key);
 			Color keyColor = stdColor;
-			Font keyFont = stdFont;
 			StringBuffer buttonHTML = new StringBuffer("");
 			if (key.getAD_PrintColor_ID() != 0)
 			{
@@ -558,11 +502,6 @@ public class WSubOrder extends WPosSubPanel
 				keyColor = color.getColor();
 			}
 			
-			if ( key.getAD_PrintFont_ID() != 0)
-			{
-				MPrintFont font = MPrintFont.get(key.getAD_PrintFont_ID());
-				keyFont = font.getFont();
-			}
 			
 			buttonHTML.append(key.getName());
 			buttonHTML.append("");
@@ -579,27 +518,17 @@ public class WSubOrder extends WPosSubPanel
 			button.setId(""+key.getC_POSKey_ID());
 			button.addEventListener("onClick", this);
 
-			if ( key.getAD_Image_ID() != 0 )
-			{
-				MImage image = MImage.get(Env.getCtx(), key.getAD_Image_ID());
-				Icon icon = image.getIcon();
-			}
-			String constraints = buttonSize;
 			int size = 1;
 			if ( key.getSpanX() > 1 )
 			{
-				constraints += "spanx " + key.getSpanX() + ",";
 				size = key.getSpanX();
 				button.setWidth(24*key.getSpanX()+"%");
-				
 			}
 			else 
 				button.setWidth("22%");
 			if ( key.getSpanY() > 1 )
 			{
-				constraints += "spany " + key.getSpanY() + ",";
 				size = size*key.getSpanY();
-				
 			}
 			buttons = buttons + size;
 			content.appendChild(button);
@@ -666,52 +595,6 @@ public class WSubOrder extends WPosSubPanel
 	}	//	dispose
 
 	
-	/**************************************************************************
-	 * 	Action Listener
-	 *	@param e event
-	 */
-	public void actionPerformed (ActionEvent e)
-	{
-//		String action = e.getActionCommand();
-//		if (action == null || action.length() == 0)
-//			return;
-//		log.info( "PosSubCustomer - actionPerformed: " + action);
-//		//	New
-//		if (action.equals("New"))
-//		{
-//			p_posPanel.newOrder(); //red1 New POS Order instead - B_Partner already has direct field
-//			return;
-//		}
-//		//	Register
-//		if (action.equals("History"))
-//		{
-//			WPosQuery qt = new WQueryTicket(p_posPanel);
-//			qt.setVisible(true);
-//			return;
-//		}
-//		else if (action.equals("Cancel"))
-//			deleteOrder();
-//		else if (action.equals("Cash"))
-//			payOrder();
-//		else if (action.equals("Print"))
-//			printOrder();
-//		else if (action.equals("BPartner"))
-//		{
-//			WPosQuery qt = new WQueryBPartner(p_posPanel);
-//			qt.setVisible(true);
-//		}
-//		// Logout
-//		else if (action.equals("Logout"))
-//		{
-//			p_posPanel.dispose();
-//			return;
-//		}
-//		//	Name
-//		else if (e.getSource() == f_name)
-//			findBPartner();
-//		
-//		p_posPanel.updateInfo();
-	}	//	actionPerformed
 
 	/**
 	 * 
@@ -858,33 +741,6 @@ public class WSubOrder extends WPosSubPanel
 			p_posPanel.m_order.setBPartner(m_bpartner);  //added by ConSerTi to update the client in the request
 	}	//	setC_BPartner_ID
 
-	/**
-	 * 	Fill Combos (Location, User)
-	 */
-	private void fillCombos()
-	{
-//		Vector<KeyNamePair> locationVector = new Vector<KeyNamePair>();
-//		if (m_bpartner != null)
-//		{
-//			MBPartnerLocation[] locations = m_bpartner.getLocations(false);
-//			for (int i = 0; i < locations.length; i++)
-//				locationVector.add(locations[i].getKeyNamePair());
-//		}
-//		DefaultComboBoxModel locationModel = new DefaultComboBoxModel(locationVector); 
-//		f_location.setModel(locationModel);
-//		//
-//		Vector<KeyNamePair> userVector = new Vector<KeyNamePair>();
-//		if (m_bpartner != null)
-//		{
-//			MUser[] users = m_bpartner.getContacts(false);
-//			for (int i = 0; i < users.length; i++)
-//				userVector.add(users[i].getKeyNamePair());
-//		}
-//		DefaultComboBoxModel userModel = new DefaultComboBoxModel(userVector); 
-//		f_user.setModel(userModel);
-	}	//	fillCombos
-	
-	
 	/**
 	 * 	Get BPartner
 	 *	@return C_BPartner_ID

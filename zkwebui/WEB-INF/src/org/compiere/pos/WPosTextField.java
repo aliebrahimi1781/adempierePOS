@@ -16,8 +16,6 @@ package org.compiere.pos;
 import java.awt.event.MouseEvent;
 import java.text.Format;
 
-import javax.swing.text.DefaultFormatterFactory;
-
 import org.adempiere.webui.component.Textbox;
 
 /**
@@ -31,12 +29,10 @@ public class WPosTextField extends Textbox {
 	 * 
 	 */
 	private static final long serialVersionUID = -2453719110038264481L;
-	private DefaultFormatterFactory formatFactory = new DefaultFormatterFactory();
 	WPosBasePanel pos = null;
 	int keyLayoutId = 0;
-	private String title;
 		
-	public WPosTextField(String title, WPosBasePanel pos, final int posKeyLayout_ID, Format format ) {
+	public WPosTextField( WPosBasePanel pos, final int posKeyLayout_ID, Format format ) {
 		super();
 		
 		if ( posKeyLayout_ID > 0 )
@@ -44,26 +40,13 @@ public class WPosTextField extends Textbox {
 		
 		keyLayoutId = posKeyLayout_ID;
 		this.pos = pos;
-		this.title = title;
 		
 	}
-	
-//	public WPosTextField(String title, WPosBasePanel pos, final int posKeyLayout_ID, Format formatter ) {
-//		super(formatter);
-//		
-//		if ( posKeyLayout_ID > 0 )
-//			addEventListener("onMouse", this);
-//		
-//		keyLayoutId = posKeyLayout_ID;
-//		this.pos = pos;
-//		this.title = title;
-//		
-//	}
 	
 	public int getKeyLayoutId() {
 		return keyLayoutId;
 	}
-	public WPosTextField(String title, WPosBasePanel pos, final int posKeyLayout_ID) {
+	public WPosTextField( WPosBasePanel pos, final int posKeyLayout_ID) {
 		super();
 		
 		if ( posKeyLayout_ID > 0 )
@@ -71,24 +54,6 @@ public class WPosTextField extends Textbox {
 		
 		keyLayoutId = posKeyLayout_ID;
 		this.pos = pos;
-		this.title = title;
 		
-	}
-
-	public void mouseReleased(MouseEvent arg0) {}
-	public void mousePressed(MouseEvent arg0) {}
-	public void mouseExited(MouseEvent arg0) {}
-	public void mouseEntered(MouseEvent arg0) {}
-
-	public void mouseClicked(MouseEvent arg0) {
-
-		if ( !isDisabled() && isReadonly() )
-		{
-			WPOSKeyboard keyboard = pos.getKeyboard(keyLayoutId); 
-			keyboard.setTitle(title);
-			keyboard.setPosTextField(this);
-			keyboard.setVisible(true);
-//			fireActionPerformed();
-		}
 	}
 }

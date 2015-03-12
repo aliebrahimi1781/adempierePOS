@@ -27,7 +27,6 @@ import org.adempiere.webui.component.Panel;
 import org.adempiere.webui.component.WListbox;
 import org.adempiere.webui.component.Window;
 import org.adempiere.webui.event.ActionEvent;
-import org.adempiere.webui.session.SessionManager;
 import org.compiere.apps.ConfirmPanel;
 import org.compiere.model.MPOS;
 import org.compiere.util.CLogger;
@@ -129,7 +128,6 @@ public abstract class WPosQuery extends Window implements MouseListener, ListSel
 	 *	@return button
 	 */
 	protected Button createButtonAction(String action, KeyStroke accelerator) {
-//		AppsAction act = new AppsAction(action, accelerator, false);
 		Button button = new Button();
 		button.setImage("images/"+action+"24.png");
 		button.setWidth("50px");

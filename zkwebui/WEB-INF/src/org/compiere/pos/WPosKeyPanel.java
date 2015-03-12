@@ -16,22 +16,15 @@ package org.compiere.pos;
 
 
 import java.awt.Color;
-import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.HashMap;
 
-import javax.swing.Icon;
-
-import org.adempiere.plaf.AdempierePLAF;
 import org.adempiere.webui.component.Label;
 import org.adempiere.webui.component.Panel;
-import org.adempiere.webui.component.Textbox;
-import org.compiere.model.MImage;
+import org.adempiere.webui.event.ActionEvent;
+import org.adempiere.webui.event.ActionListener;
 import org.compiere.model.MPOSKey;
 import org.compiere.model.MPOSKeyLayout;
 import org.compiere.print.MPrintColor;
-import org.compiere.print.MPrintFont;
 import org.compiere.util.CLogger;
 import org.compiere.util.Env;
 import org.zkoss.zk.ui.event.Event;
@@ -52,15 +45,17 @@ public class WPosKeyPanel extends Panel implements ActionListener, EventListener
 	/**
 	 * 	Constructor
 	 */
-	public WPosKeyPanel (int C_POSKeyLayout_ID, PosKeyListener caller, String m_txtCalc)
+	public WPosKeyPanel (int C_POSKeyLayout_ID, PosKeyListener caller, String m_txtCalc, boolean keyBoardType)
 	{
 		if (C_POSKeyLayout_ID == 0)
 			return;
 		setHeight("100%");
 		setWidth("100%");
 		status = false;
+		this.keyBoardType=keyBoardType;
 		appendChild(createPanel(C_POSKeyLayout_ID, m_txtCalc));
 		currentLayout = C_POSKeyLayout_ID;
+		
 		this.caller = caller;
 	}	//	PosSubFunctionKeys
 	
@@ -76,6 +71,7 @@ public class WPosKeyPanel extends Panel implements ActionListener, EventListener
 	private boolean status;
 	private Panel ABC_SubCard;
 	private Panel abc_SubCard;
+	boolean keyBoardType; 
 	public Panel createPanel(int C_POSKeyLayout_ID, String m_txtCalc){
 		Panel card = new Panel();
 		card.setWidth("100%");
@@ -131,12 +127,6 @@ public class WPosKeyPanel extends Panel implements ActionListener, EventListener
 			MPrintColor color = MPrintColor.get(Env.getCtx(), keyLayout.getAD_PrintColor_ID());
 			stdColor = color.getColor();
 		}
-		Font stdFont = AdempierePLAF.getFont_Field();
-		if (keyLayout.getAD_PrintFont_ID() != 0)
-		{
-			MPrintFont font = MPrintFont.get(keyLayout.getAD_PrintFont_ID());
-			stdFont = font.getFont();
-		}
 		
 		if (keyLayout.get_ID() == 0)
 			return null;
@@ -159,23 +149,15 @@ public class WPosKeyPanel extends Panel implements ActionListener, EventListener
 			+ ", Cols=" + cols);
 		//	Content
 		Panel content = new Panel ();
-		String buttonSize = "h 50, w 50, growx, growy, sg button,";
 		for (MPOSKey key :  keys)
 		{
 					
 			map.put(key.getC_POSKey_ID(), key);
 			Color keyColor = stdColor;
-			Font keyFont = stdFont;
 			if (key.getAD_PrintColor_ID() != 0)
 			{
 				MPrintColor color = MPrintColor.get(Env.getCtx(), key.getAD_PrintColor_ID());
 				keyColor = color.getColor();
-			}
-			
-			if ( key.getAD_PrintFont_ID() != 0)
-			{
-				MPrintFont font = MPrintFont.get(key.getAD_PrintFont_ID());
-				keyFont = font.getFont();
 			}
 			
 			log.fine( "#" + map.size() + " - " + keyColor); 
@@ -188,34 +170,17 @@ public class WPosKeyPanel extends Panel implements ActionListener, EventListener
 			button.setHeight("55px");
 			button.setWidth("55px");
 
-			button.setAction("onClick : text_action.clearAlll('" +  m_txtCalc + "', '" + key.getName() + "')");
-//			button.setBackground(keyColor);
-//			button.setFont(keyFont);
+			button.setAction("onClick : text_action.clearAlll('" +  m_txtCalc + "', '" + key.getText() + "', '" + this.keyBoardType + "')");
 			button.setId(""+key.getC_POSKey_ID());
 			button.addEventListener("onClick", this);
-			if ( key.getAD_Image_ID() != 0 )
-			{
-				MImage image = MImage.get(Env.getCtx(), key.getAD_Image_ID());
-				Icon icon = image.getIcon();
-//				button.setIcon(icon);
-//				button.setVerticalTextPosition(SwingConstants.BOTTOM);
-//				button.setHorizontalTextPosition(SwingConstants.CENTER);
-			}
-//			button.setFocusable(false);
-//			if ( !key.isActive() )
-//				button.setEnabled(false);
-//			button.setActionCommand(String.valueOf(key.getC_POSKey_ID()));
-//			button.addActionListener(this);
-			String constraints = buttonSize;
+
 			int size = 1;
 			if ( key.getSpanX() > 1 )
 			{
-				constraints += "spanx " + key.getSpanX() + ",";
 				size = key.getSpanX();
 			}
 			if ( key.getSpanY() > 1 )
 			{
-				constraints += "spany " + key.getSpanY() + ",";
 				size = size*key.getSpanY();
 			}
 			buttons = buttons + size;
@@ -232,17 +197,10 @@ public class WPosKeyPanel extends Panel implements ActionListener, EventListener
 			button.setStyle("float:left; text-align:center; margin:1% 1%;  border: 2px outset #CCC;");
 			button.setHeight("55px");
 			button.setWidth("55px");
-//			button.setFocusable(false);
-//			button.setReadWrite(false);
 			content.appendChild(button);
 		}
 		card.appendChild(content);
-//		CScrollPane scroll = new CScrollPane(content);
-		// scroll.setPreferredSize(new Dimension( 600 - 20, 400-20));
-//		card.add (scroll, "growx, growy");
-		// increase scrollbar width for touchscreen
-//		scroll.getVerticalScrollBar().setPreferredSize(new Dimension(30, 0));
-//		scroll.getHorizontalScrollBar().setPreferredSize(new Dimension(0,30));
+
 		return card;
 	}
 
@@ -250,34 +208,6 @@ public class WPosKeyPanel extends Panel implements ActionListener, EventListener
 	 * 	Action Listener
 	 *	@param e event
 	 */
-	public void actionPerformed (ActionEvent e)
-	{
-		String action = e.getActionCommand();
-		if (action == null || action.length() == 0 || keymap == null)
-			return;
-		log.info( "PosSubFunctionKeys - actionPerformed: " + action);
-		HashMap<Integer, MPOSKey> currentKeymap = keymap.get(currentLayout);
-		
-		try
-		{
-			int C_POSKey_ID = Integer.parseInt(action);
-			MPOSKey key = currentKeymap.get(C_POSKey_ID);
-			// switch layout
-			if ( key.getSubKeyLayout_ID() > 0 )
-			{
-				currentLayout = key.getSubKeyLayout_ID();
-//				cardLayout.show(this, Integer.toString(key.getSubKeyLayout_ID()));
-			}
-			else
-			{
-				caller.keyReturned(key);
-			}
-		}
-		catch (Exception ex)
-		{
-		}
-		
-	}	//	actionPerformed
 
 	@Override
 	public void onEvent(Event event) throws Exception {
@@ -292,8 +222,6 @@ public class WPosKeyPanel extends Panel implements ActionListener, EventListener
 			MPOSKey key = currentKeymap.get(C_POSKey_ID);
 			if ( key.getSubKeyLayout_ID() > 0 )
 			{
-
-				currentLayout = key.getSubKeyLayout_ID();
 				currentLayout = key.getSubKeyLayout_ID();
 				if(ABC_SubCard.getContext().equals(event.getTarget().getId())){
 					ABC_SubCard.setVisible(true);
@@ -312,6 +240,12 @@ public class WPosKeyPanel extends Panel implements ActionListener, EventListener
 		catch (Exception ex)
 		{
 		}
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent event) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

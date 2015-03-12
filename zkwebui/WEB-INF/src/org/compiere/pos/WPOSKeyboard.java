@@ -14,7 +14,6 @@
 
 package org.compiere.pos;
 
-import java.awt.Dimension;
 import java.util.HashMap;
 
 import org.adempiere.webui.apps.AEnv;
@@ -25,7 +24,6 @@ import org.adempiere.webui.component.GridFactory;
 import org.adempiere.webui.component.Panel;
 import org.adempiere.webui.component.Row;
 import org.adempiere.webui.component.Rows;
-import org.adempiere.webui.component.Textbox;
 import org.adempiere.webui.component.Window;
 import org.adempiere.webui.event.ActionEvent;
 import org.adempiere.webui.event.ActionListener;
@@ -58,6 +56,7 @@ public class WPOSKeyboard extends Window implements ActionListener, PosKeyListen
 		private WPosTextField field;
 		private Doublebox dfield;
 		private MPOSKeyLayout keylayout;
+		private boolean keyBoardType;
 
 	/**
 	 * 	Constructor
@@ -73,6 +72,7 @@ public class WPOSKeyboard extends Window implements ActionListener, PosKeyListen
 	public WPOSKeyboard(WPosBasePanel posPanel, int keyLayoutId) {
 		super();
 		keylayout = MPOSKeyLayout.get(posPanel.getCtx(), keyLayoutId);
+		keyBoardType = keylayout.getPOSKeyLayoutType().equals(MPOSKeyLayout.POSKEYLAYOUTTYPE_Numberpad);
 		init( keyLayoutId );
 	}
 	public WPOSKeyboard(Window parent, WPosBasePanel posPanel, int keyLayoutId, WPosTextField field) {
@@ -80,6 +80,7 @@ public class WPOSKeyboard extends Window implements ActionListener, PosKeyListen
 		setPosTextField(field);
 		setTitle(Msg.translate(Env.getCtx(), "M_Product_ID"));
 		keylayout = MPOSKeyLayout.get(posPanel.getCtx(), keyLayoutId);
+		keyBoardType = keylayout.getPOSKeyLayoutType().equals(MPOSKeyLayout.POSKEYLAYOUTTYPE_Numberpad);
 		init( keyLayoutId );
 		AEnv.showCenterWindow(parent, this);
 	}
@@ -132,8 +133,8 @@ public class WPOSKeyboard extends Window implements ActionListener, PosKeyListen
 
 		String txtCalcId = txtCalc.getId();
 		row.appendChild(txtCalc);
-		txtCalc.addEventListener("onChanging", this);
-		WPosKeyPanel keys = new WPosKeyPanel(POSKeyLayout_ID, this, txtCalcId);
+		txtCalc.setName("sdsd");
+		WPosKeyPanel keys = new WPosKeyPanel(POSKeyLayout_ID, this, txtCalcId, keyBoardType);
 		center = new Center();
 		center.setStyle("border: none");
 		keys.setWidth("100%");
@@ -153,7 +154,7 @@ public class WPOSKeyboard extends Window implements ActionListener, PosKeyListen
 	/**
 	 * 	Dispose - Free Resources
 	 */
-	public void dispos()
+	public void close()
 	{
 		if (keys != null)
 		{
@@ -170,100 +171,20 @@ public class WPOSKeyboard extends Window implements ActionListener, PosKeyListen
 	@Override
 	public void keyReturned(MPOSKey key) {
 		
-		String entry = key.getText();
-		String old = txtCalc.getText();
-//		text.(start, end);
-	
-//		int caretPos = text.getCaretPosition();
-//		if ( text.getSelectedText() != null )
-//			caretPos = text.getSelectionStart();
-//		String head = old.substring(0, caretPos);
-//		if ( text.getSelectedText() != null )
-//			caretPos = text.getSelectionEnd();
-		String tail = old;
-		
-//		if ( entry != null && !entry.isEmpty() )
-//		{	
-//			if(entry.equals("-")){
-//				int last = txtCalc.getText().length();
-//				txtCalc.setText(txtCalc.getText().substring(0, last-1));
-//				
-//			}
-//			else if ( keylayout.getPOSKeyLayoutType().equals(MPOSKeyLayout.POSKEYLAYOUTTYPE_Keyboard))
-//			{
-//				if ( key.getText() != null )
-//					txtCalc.setText( tail + entry );
-//			}
-//			else if ( keylayout.getPOSKeyLayoutType().equals(MPOSKeyLayout.POSKEYLAYOUTTYPE_Numberpad))
-//			{
-//				if ( entry.equals(".") )
-//				{
-//					txtCalc.setText(tail + entry);
-//				}
-//				if ( entry.equals(",") )
-//				{
-//					txtCalc.setText(tail + entry);
-//				}
-//				else if ( entry.equals("C") )
-//				{
-//					txtCalc.setText("0");
-//				}
-//				else {
-//				try
-//				{
-//					int number = Integer.parseInt(entry);		// test if number
-//					if ( number >= 0 && number <= 9 )
-//					{
-//						txtCalc.setText(tail+number);
-//					}
-//					// greater than 9, add to existing
-//					else 
-//					{
-//						Boolean current = txtCalc.getValue().contains(".");
-//						if ( current==true )
-//						{
-//							txtCalc.setText(number+Double.parseDouble(tail)+"");
-//						}
-//						else
-//						{
-//							txtCalc.setText(""+Integer.parseInt(tail)+number);
-//						}
-//													
-//					}
-//
-//
-//				}
-//				catch (NumberFormatException e)
-//				{
-//					// ignore non-numbers
-//				}
-//				}
-//				
-////				try {
-////					text.commitEdit();
-////				} catch (ParseException e) {
-////					log.log(Level.FINE, "JFormattedTextField commit failed");
-////				}
-//			}
-//		}
 	}
 
 	public void setPosTextField(WPosTextField posTextField) {
 		
 		field = posTextField;
-//		text.setFormatterFactory(field.getFormatterFactory());
 		txtCalc.setText(field.getText());
 		txtCalc.setValue(field.getValue());
-//		getContentPane().invalidate();
 		
 	}
 	public void setPosTextField(Doublebox posTextField) {
 		
 		dfield = posTextField;
-//		text.setFormatterFactory(field.getFormatterFactory());
 		txtCalc.setText(dfield.getText());
 		txtCalc.setValue(dfield.getValue().toString());
-//		getContentPane().invalidate();
 		
 	}
 
@@ -287,7 +208,7 @@ public class WPOSKeyboard extends Window implements ActionListener, PosKeyListen
 		}
 		else if ( action.equals(ConfirmPanel.A_CANCEL))
 		{
-			dispos();
+			close();
 		}
 		else if (e.getSource().equals(ConfirmPanel.A_OK))
 		{
@@ -297,7 +218,7 @@ public class WPOSKeyboard extends Window implements ActionListener, PosKeyListen
 //			} catch (ParseException e1) {
 //				log.log(Level.FINE, "JFormattedTextField commit failed");
 //			}
-			dispos();
+			close();
 		}
 		log.info( "PosSubBasicKeys - actionPerformed: " + action);
 	}
@@ -306,6 +227,7 @@ public class WPOSKeyboard extends Window implements ActionListener, PosKeyListen
 	public void onEvent(Event e) throws Exception {
 	
 		String action = e.getTarget().getId();
+
 		if (action == null || action.length() == 0)
 			return;
 		else if ( action.equals(ConfirmPanel.A_RESET))
@@ -314,28 +236,18 @@ public class WPOSKeyboard extends Window implements ActionListener, PosKeyListen
 				txtCalc.setText("0");
 			else
 				txtCalc.setText("");
-//			try {
-////				text.commitEdit();
-//			} catch (ParseException e1) {
-//				log.log(Level.FINE, "JFormattedTextField commit failed");
-//			}
 		}
 		else if ( action.equals(ConfirmPanel.A_CANCEL))
 		{
-			dispos();
+			close();
 		}
 		else if (action.equals(ConfirmPanel.A_OK))
 		{
 			if(dfield!=null)
-				dfield.setText(txtCalc.getText());
+				dfield.setText(txtCalc.getValue());
 			else 
-				field.setText(txtCalc.getText());
-//			try {
-////				field.commitEdit();
-//			} catch (ParseException e1) {
-//				log.log(Level.FINE, "JFormattedTextField commit failed");
-//			}
-			dispos();
+				field.setText(txtCalc.getValue());
+			close();
 		}
 		log.info( "PosSubBasicKeys - actionPerformed: " + action);
 	}

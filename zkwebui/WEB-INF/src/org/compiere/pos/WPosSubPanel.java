@@ -20,7 +20,6 @@ import javax.swing.KeyStroke;
 
 import org.adempiere.webui.component.Borderlayout;
 import org.adempiere.webui.component.Button;
-import org.compiere.apps.AppsAction;
 import org.compiere.model.MPOS;
 import org.compiere.util.Env;
 import org.zkoss.zk.ui.event.EventListener;
@@ -86,7 +85,6 @@ public abstract class WPosSubPanel extends Borderlayout
 	 */
 	protected Button createButtonAction (String action, KeyStroke accelerator)
 	{
-		AppsAction act = new AppsAction(action, accelerator, false);
 		Button button = new Button();
 		button.setImage("images/"+action+"24.png");
 		button.setWidth(WIDTH+"px");
